@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir *)",
+      "Bash(mv KirchenKI-main apps/web)",
+      "Bash(mv KirchenKI-neu-main/backend services/social-media)",
+      "Bash(rm *)"
+    ]
+  }
+}

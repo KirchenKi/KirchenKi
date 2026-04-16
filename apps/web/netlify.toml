@@ -1,0 +1,26 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Redirects für Multi-Page-Struktur
+[[redirects]]
+  from = "/tool"
+  to = "/tool.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/settings"
+  to = "/settings.html"
+  status = 200
+
+# Fallback für andere Routen zur Landing Page
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

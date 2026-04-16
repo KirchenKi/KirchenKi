@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Build outputs
+dist/
+build/
+.next/
+*.egg-info/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.pytest_cache/
+
+# Python-Service spezifisch
+services/social-media/uploads/
+services/social-media/outputs/
+services/social-media/*.mp3
+services/social-media/*.mp4
+services/social-media/*.wav
+
+# Claude Code lokale Daten
+.claude/cache/
+.claude/logs/

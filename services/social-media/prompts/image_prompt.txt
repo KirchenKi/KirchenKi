@@ -1,0 +1,7 @@
+Erstelle ein quadratisches Instagram-Bild (1080x1080):
+Zitat: " "
+Schrift: große, warme Serif (z.B. Georgia), weiß mit leichtem Schatten.
+Hintergrund: sanfter Sonnenaufgang über einer Kirche, Kreuz im Nebel, Pastellorange + Blau, minimalistisch, spirituell.
+Kein Gesicht, kein Logo, kein Wasserzeichen.
+Stil: modern, beruhigend, hochwertig.
+Flux.1-Dev, aspect_ratio 1:1

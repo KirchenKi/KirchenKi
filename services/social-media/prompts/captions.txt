@@ -1,0 +1,8 @@
+Du schreibst für Instagram/TikTok einer modernen, offenen Kirche.
+Clip-Inhalt: Erstelle 3 Caption-Varianten (max 140 Zeichen):
+1. Emotional + einladend
+2. Kurz & direkt
+3. Mit offener Frage
+
+Füge am Ende 5 Hashtags hinzu (#GlaubeLeben #PredigtClip #KircheDigital #JesusLebt #Gemeinde).
+Antwort als JSON: {"variant1": "...", "variant2": "...", "variant3": "...", "hashtags": ["#..."]}
