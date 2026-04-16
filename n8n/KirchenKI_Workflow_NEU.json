@@ -1,0 +1,2509 @@
+{
+  "name": "KirchenKI Workflow NEU",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "binaryPropertyName": "file",
+        "options": {
+          "language": "de",
+          "prompt": "Dies ist eine christliche Predigt auf Deutsch mit Bibelzitaten, oft aus der Lutherbibel oder Elberfelder Übersetzung. Häufig genannte Begriffe: Jesus, Christus, Gott, Heiliger Geist, Evangelium, Gnade, Glaube, Gemeinde, Predigt, Gebet, Lobpreis, Sünde, Errettung, Heiligung. Bibelstellen werden im Format '1 Samuel 15,22' oder 'Johannes 3,16' zitiert."
+        }
+      },
+      "id": "8a4fde66-d0c5-466b-b613-3ae1b8558a35",
+      "name": "Transcribe Audio",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -49712,
+        480
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "zv9DxrbyZmBDg5R0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "file",
+        "options": {}
+      },
+      "id": "628cdeb9-00c4-45c8-8140-9ff2a571c93f",
+      "name": "Extract Text from PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -49712,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "file",
+        "destinationKey": "file",
+        "options": {}
+      },
+      "id": "154927b1-a3f4-4b54-9959-2be130d9e4c5",
+      "name": "Extract Text from Word",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -49760,
+        1280
+      ],
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "executeOnce": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.sermonText }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a sermon analysis assistant for church content creation.\n\nYour task is to:\n1. Read and analyze the provided sermon text thoroughly\n2. Extract the main themes, key messages, and scripture references\n3. Summarize the core teachings in a clear, structured format\n4. Identify practical applications and discussion points\n5. Return the analysis in a well-organized JSON format"
+        }
+      },
+      "id": "bc1ba76b-6b2d-4cf1-9d05-839622f82f7c",
+      "name": "Summarize and Format Sermon",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48848,
+        1728
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "a755b5cd-00ff-4341-bfc9-4c97a3abe335",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -48848,
+        1952
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "zv9DxrbyZmBDg5R0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"mainTheme\": \"string\",\n\t\"keyMessages\": [\"string\"],\n\t\"scriptureReferences\": [\"string\"],\n\t\"summary\": \"string\",\n\t\"practicalApplications\": [\"string\"],\n\t\"discussionPoints\": [\"string\"]\n}"
+      },
+      "id": "c9a53ac1-aef1-48c7-bb26-518e34dd7875",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -48720,
+        1952
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-5-nano"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "d7503bd6-82fd-4ae3-8bd0-56cd533911e5",
+      "name": "OpenAI Model for Age Groups",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -47616,
+        3008
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "zv9DxrbyZmBDg5R0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.sendToEmail }}",
+        "subject": "=Dein Vorbereitungsmaterial für {{ $json.currentGroupName }} ist fertig!",
+        "message": "=<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>KirchenKI – Material fertig</title>\n  <style>\n    /* Grundlegende Resets */\n    body {\n      font-family: \"Inter\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n      background-color: #f3f4f6;\n      margin: 0;\n      padding: 0;\n      color: #111827;\n      -webkit-font-smoothing: antialiased;\n    }\n    .container {\n      max-width: 600px;\n      margin: 40px auto;\n      background: #ffffff;\n      border-radius: 12px;\n      overflow: hidden;\n      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);\n      border: 1px solid #e5e7eb;\n    }\n\n    /* HEADER OPTIMIERUNG */\n    .header {\n      background: #6b806c;\n      color: #ffffff;\n      padding: 24px 32px;\n    }\n    .header-table {\n      width: 100%;\n      border-collapse: collapse;\n    }\n    .header-td-logo {\n      /* HIER GEÄNDERT: Mehr Platz für das Logo */\n      width: 100px; \n      padding-right: 20px;\n      vertical-align: middle;\n    }\n    .header-td-text {\n      text-align: left;\n      vertical-align: middle;\n    }\n    .logo {\n      /* HIER GEÄNDERT: Logo größer (von 48px auf 80px) */\n      width: 80px; \n      height: auto;\n      display: block;\n      border-radius: 6px;\n    }\n    .header-text h1 {\n      margin: 0;\n      /* HIER GEÄNDERT: Schrift etwas größer, damit sie neben dem Logo wirkt */\n      font-size: 22px; \n      font-weight: 700;\n      line-height: 1.2;\n      color: #ffffff;\n    }\n    .header-text p {\n      margin: 4px 0 0 0;\n      font-size: 14px;\n      font-weight: 500;\n      color: rgba(255, 255, 255, 0.9);\n    }\n\n    /* CONTENT BEREICH */\n    .content {\n      padding: 32px;\n      line-height: 1.6;\n      color: #374151;\n      font-size: 16px;\n    }\n    .content p {\n      margin: 0 0 16px 0;\n    }\n    \n    /* CARD / HIGHLIGHT BOX */\n    .card {\n      background: #f9fafb;\n      border: 1px solid #e5e7eb;\n      border-left: 4px solid #6b806c;\n      border-radius: 6px;\n      padding: 16px;\n      color: #4b5563;\n      font-size: 14px;\n      margin-top: 24px;\n    }\n\n    /* FOOTER */\n    .footer {\n      background: #ffffff;\n      border-top: 1px solid #e5e7eb;\n      color: #111827;\n      padding: 24px 32px;\n      text-align: center;\n      font-size: 16px;\n      font-weight: 600;\n    }\n    .sub-footer {\n      background: #f9fafb;\n      padding: 12px;\n      text-align: center;\n      font-size: 11px;\n      color: #9ca3af;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    \n    <div class=\"header\">\n      <table class=\"header-table\" role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\">\n        <tr>\n          <td class=\"header-td-logo\">\n            <img class=\"logo\" src=\"https://i.postimg.cc/CMJ3qj50/Kirchen-KI-icon2.png\" alt=\"KirchenKI Logo\">\n          </td>\n          <td class=\"header-td-text\">\n            <div class=\"header-text\">\n              <h1>Dein Material ist fertig</h1>\n              <p>Vorbereitung erfolgreich abgeschlossen</p>\n            </div>\n          </td>\n        </tr>\n      </table>\n    </div>\n\n    <div class=\"content\">\n      <p>Hallo,</p>\n      <p>deine Ausarbeitung für die nächste Session wurde erfolgreich generiert. Du findest die Datei im Anhang dieser E-Mail.</p>\n      \n      <div class=\"card\">\n        <strong>Info zur Gruppe:</strong><br>\n        Das Material wurde speziell für deine ausgewählte Altersgruppe zusammengestellt.\n      </div>\n    </div>\n\n    <div class=\"footer\">\n      Viel Segen für die Vorbereitung!\n    </div>\n    \n    <div class=\"sub-footer\">\n      Erstellt mit KirchenKI.com\n    </div>\n\n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "=data"
+              }
+            ]
+          }
+        }
+      },
+      "id": "d4558c13-7153-48e3-a7d2-cb2543116cfc",
+      "name": "Send Email to Recipients",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -43920,
+        1392
+      ],
+      "webhookId": "b86d5292-97ae-4a79-9466-1a4bd982a41a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "c9N5E0alRthPWlUs",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "b1b536d4-7fb9-405c-9f46-899acb6261d7",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -49776,
+        1520
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "admin@kirchenki.com",
+        "subject": "Workflow Error notification",
+        "emailType": "text",
+        "message": "=An error occurred in the church content generation workflow.\n\nError Details:\nWorkflow: {{ $('Error Trigger').item.json.workflow.name }}\nExecution ID: {{ $('Error Trigger').item.json.execution.id }}\nNode: {{ $('Error Trigger').item.json.node.name }}\nError Message: {{ $('Error Trigger').item.json.error.message }}\n\nTimestamp: {{ $('Error Trigger').item.json.execution.lastNodeExecuted }}\n\nPlease review the workflow and resolve the issue.",
+        "options": {}
+      },
+      "id": "069e5d76-ae77-43bf-b616-5a1a5be6bd94",
+      "name": "Send Error Notification",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -49552,
+        1520
+      ],
+      "webhookId": "257343c5-7eaf-444a-96ab-88ed75a10a69",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "c9N5E0alRthPWlUs",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "sermonText",
+              "value": "={{ $json.text || $json.transcription }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      },
+      "id": "1868d2be-9ae4-48b1-ab5f-cd2ca8ae4159",
+      "name": "Merge Text Paths",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -49488,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "htmlContent",
+        "options": {
+          "fileName": "={{ $json.fileName }}"
+        }
+      },
+      "id": "92181738-20e0-4f96-a842-941adc9cd34f",
+      "name": "Convert to DOCX File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -45184,
+        1872
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  // 1) Metadaten pro Item holen (nach Restore)\n  const groupName = item.json.currentGroupName || 'Unbekannte Gruppe';\n  const mainTheme = item.json.mainTheme || 'Vorbereitungsmaterial';\n\n  // ROBUSTE Extraktion für ALLE wichtigen Felder\n  const getValue = (val) => {\n    if (val === null || val === undefined) return null;\n    if (Array.isArray(val)) return val[0] || null;\n    return val;\n  };\n\n  const sermon_id = getValue(item.json.sermon_id);\n  const user_id   = getValue(item.json.user_id);\n  const title     = getValue(item.json.title);\n  const original_file_name = getValue(item.json.original_file_name);\n\n  // 2) Footer\n  const footerRecipient = item.json.sendToEmail || groupName || 'den Empfänger';\n\n  // 3) Sicheren Dateinamen bauen (aus groupName + mainTheme)\n  const rawBase = `${groupName}_${mainTheme}`;\n  const safeBase = rawBase\n    .toString()\n    .replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_')\n    .replace(/_+/g, '_')\n    .replace(/^_+|_+$/g, '');\n  const fileName = `${safeBase}.doc`;\n\n  // 4) HTML-Content\n  let rawContent = item.json.output ||\n                   item.json.text ||\n                   item.json.formatted_content ||\n                   item.json.content ||\n                   'Kein Inhalt generiert.';\n\n  const cleanContent = (text) => {\n    if (!text) return '';\n    let cleaned = text.toString()\n      .replace(/<!DOCTYPE[^>]*>/gi, '')\n      .replace(/<html[^>]*>/gi, '')\n      .replace(/<\\/html>/gi, '')\n      .replace(/<head[^>]*>[\\s\\S]*?<\\/head>/gi, '')\n      .replace(/<body[^>]*>/gi, '')\n      .replace(/<\\/body>/gi, '')\n      .replace(/<meta[^>]*>/gi, '')\n      .replace(/<title[^>]*>[\\s\\S]*?<\\/title>/gi, '')\n      .trim();\n    return cleaned || '<p>Kein Inhalt generiert.</p>';\n  };\n\n  const finalBodyContent = cleanContent(rawContent);\n\n  // 5) HTML-Template\n  const htmlContent = `\n<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n  <title>KirchenKI ${groupName}</title>\n  <style>\n    :root {\n      --primary: #6b806c;\n      --primary-soft: rgba(107, 128, 108, 0.12);\n      --accent: #6b806c;\n      --text-main: #111827;\n      --text-soft: #4b5563;\n      --bg: #ffffff;\n      --card: #f3f4f6;\n      --border: #e5e7eb;\n    }\n    * { box-sizing: border-box; }\n    body {\n      font-family: Inter, \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n      line-height: 1.7;\n      color: var(--text-main);\n      background: var(--bg);\n      padding: 40px;\n      margin: 0;\n    }\n    .header {\n      border-bottom: 1px solid var(--border);\n      margin-bottom: 30px;\n      padding-bottom: 20px;\n    }\n    .tag {\n      display: inline-block;\n      background: var(--primary-soft);\n      color: var(--accent);\n      padding: 4px 10px;\n      border-radius: 999px;\n      font-size: 12px;\n      margin-bottom: 10px;\n      font-weight: 600;\n    }\n    h1 { margin: 0; font-size: 28px; color: var(--primary); }\n    .subtitle { color: var(--text-soft); font-size: 14px; margin-top: 8px; }\n    .content { font-size: 15px; color: var(--text-soft); }\n    hr { border: none; border-top: 1px solid var(--border); margin: 30px 0; }\n    small { color: #999999; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <div class=\"tag\">${groupName}</div>\n    <h1>${groupName}</h1>\n    <div class=\"subtitle\">KirchenKI Studienmaterial – ${mainTheme}</div>\n  </div>\n  <div class=\"content\">\n    ${finalBodyContent}\n  </div>\n  <br /><br />\n  <hr />\n  <small>Erstellt für ${footerRecipient} – Generiert mit KirchenKI</small>\n</body>\n</html>\n`.trim();\n\n  \n  // E-Mail direkt aus den Original-Webhook-Daten pro Gruppe nachschlagen\n  // 6) E-Mail-Daten: Per-Gruppe aus Webhook nachschlagen\n  const webhookBody = $('Webhook from kirchenki.com').first().json.body || {};\n  let groupEmailsMap = {};\n  try { groupEmailsMap = JSON.parse(webhookBody.groupEmails || '{}'); } catch(e) {}\n  const trimmedGroup = groupName.trim();\n  const matchingKey = Object.keys(groupEmailsMap).find(\n    key => key.trim().toLowerCase() === trimmedGroup.toLowerCase()\n  );\n  const groupEmailList = matchingKey ? groupEmailsMap[matchingKey] : [];\n  const sendToEmail = groupEmailList[0] || webhookBody.email || 'admin@kirchenki.com';\n  const subjectPrefix = `Material für ${groupName}`;\n\n  // 7) Ergebnis zurückgeben\n  return {\n    json: {\n      htmlContent: htmlContent,\n      fileName: fileName,\n      currentGroupName: groupName,\n      mainTheme: mainTheme,\n      sendToEmail: sendToEmail,\n      subjectPrefix: subjectPrefix,\n      sermon_id: $(\"Restore Metadata\").first().json.sermon_id,\n      user_id: $(\"Restore Metadata\").first().json.user_id,\n      title: $(\"Restore Metadata\").first().json.title,\n      original_file_name: $(\"Restore Metadata\").first().json.original_file_name\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -45536,
+        1872
+      ],
+      "id": "eaa9529b-d647-44b6-838a-3be961fdf407",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kirchenki-request",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "file"
+        }
+      },
+      "id": "8970d4cf-759b-42e9-b2f1-ace559611017",
+      "name": "Webhook from kirchenki.com",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -50608,
+        672
+      ],
+      "webhookId": "40eafc40-8ab4-47e6-8512-a553fba8ce2a"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.file.mimeType }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "cc88b3e9-bddd-4705-97eb-de710b4b41f2"
+                  },
+                  {
+                    "leftValue": "={{ $binary.file.mimeType }}",
+                    "rightValue": "video",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "31a26f27-57ee-462e-ade2-78ca467c5198"
+                  }
+                ],
+                "combinator": "or"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio/Video"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.file.mimeType }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "b02592a6-76fd-426f-9e22-c1a131e37c23"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.file.mimeType }}",
+                    "rightValue": "word",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "d0fefac9-e350-4203-b83f-41b817eb2583"
+                  },
+                  {
+                    "leftValue": "={{ $binary.file.mimeType }}",
+                    "rightValue": "document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "4a67ed9c-5e88-49cd-8249-01b33da6eb7e"
+                  }
+                ],
+                "combinator": "or"
+              },
+              "renameOutput": true,
+              "outputKey": "Word"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ebb405cb-6bc1-401c-b945-69bfd77e3fc5",
+      "name": "Check File Type from Binary",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -49936,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.meta.nurTranskript }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "447f3d81-3940-4fc9-b973-cc2332a435c7",
+      "name": "Check nurTranskript Flag",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -49040,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "={{ $('Merge Text Paths').item.json.sermonText }}",
+        "options": {
+          "fileName": "={{ 'Transkript_' + $now.format('yyyy-MM-dd') + '.docx' }}"
+        }
+      },
+      "id": "a979b947-b295-46d1-9500-61bd281bf743",
+      "name": "Convert Transcript to DOCX",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -47712,
+        448
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "d3cba518-e7f6-492c-aac0-4a631a57be65",
+      "name": "Merge Transcript and Full Materials Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -46768,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'Workflow completed successfully' } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "4089482d-d8fa-4a2d-979a-8258d8355fa4",
+      "name": "Respond 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -43680,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const binaryKeys = Object.keys($input.first().binary || {});\nif (binaryKeys.length > 0) {\n  const sourceKey = binaryKeys[0];\n  $input.first().binary.file = $input.first().binary[sourceKey];\n  if (sourceKey !== 'file') {\n    delete $input.first().binary[sourceKey];\n  }\n}\nreturn $input.all();"
+      },
+      "id": "3265db64-14e7-4d8b-9e00-7518bf685a25",
+      "name": "Rename Binary Property file0 to file",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -50160,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the webhook body data\nconst body = $input.first().json.body;\n\n// Parse groups string to array\nlet kleingruppen = [];\nif (body.groups) {\n  try {\n    kleingruppen = JSON.parse(body.groups);\n  } catch (e) {\n    kleingruppen = body.groups.split(',').map(g => g.trim()).filter(g => g);\n  }\n}\n\n// Parse groupEmails string to object\nlet groupEmails = {};\nif (body.groupEmails) {\n  try {\n    groupEmails = JSON.parse(body.groupEmails);\n  } catch (e) {\n    groupEmails = {};\n  }\n}\n\n// Parse recipientEmails string to array\nlet recipientEmails = [];\nif (body.recipientEmails) {\n  try {\n    recipientEmails = JSON.parse(body.recipientEmails);\n  } catch (e) {\n    if (typeof body.recipientEmails === 'string') {\n      recipientEmails = body.recipientEmails\n        .split(',')\n        .map(e => e.trim())\n        .filter(e => e);\n    } else {\n      recipientEmails = [];\n    }\n  }\n}\n\n// Neue Felder von der Edge Function\nconst sermon_id = body.sermon_id || null;\nconst user_id = body.user_id || null;\nconst title = body.title || null;\nconst original_file_name = body.original_file_name || null;\n\n// Convert nurTranskript string to boolean\nlet nurTranskript = false;\nif (body.nurTranskript) {\n  nurTranskript = body.nurTranskript === 'true' || body.nurTranskript === '1' || body.nurTranskript === true;\n}\n\n// Get email from body\nconst email = body.email || '';\n\n// Preserve all original data and add parsed fields\nconst output = {\n  ...($input.first().json),\n  kleingruppen: kleingruppen,\n  groupEmails: groupEmails,\n  recipientEmails: recipientEmails,\n  nurTranskript: nurTranskript,\n  email: email,\n  \n  // Neue Felder für Supabase-Verknüpfung\n  sermon_id: sermon_id,\n  user_id: user_id,\n  title: title,\n  original_file_name: original_file_name\n};\n\n// Preserve binary data if present\nconst binary = $input.first().binary || {};\n\nreturn [{ json: output, binary: binary }];"
+      },
+      "id": "ccd5fa5b-d094-4fa3-b42e-7f0a8e751794",
+      "name": "Parse Form Arrays",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -50384,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Sichere Metadaten in \"meta\"-Objekt\nconst item = items[0];\n\nitem.json.meta = {\n    groups: item.json.kleingruppen || [],\n    groupEmails: item.json.groupEmails || {},\n    recipientEmails: item.json.recipientEmails || [],\n    email: item.json.email || '',\n    nurTranskript: item.json.nurTranskript || false\n};\n\nreturn items;"
+      },
+      "id": "036c3222-0c11-444e-98e8-294bf2d2d3f2",
+      "name": "Save Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -49264,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    const saveData = $('save data').first().json || {};\n    const webhookBody = $('Webhook from kirchenki.com').first().json.body || {};\n\n    // groupEmails Mapping parsen\n    let groupEmailsMap = {};\n    try { groupEmailsMap = JSON.parse(webhookBody.groupEmails || '{}'); } catch(e) {}\n\n    // Pro Datenelement die richtige E-Mail setzen\n    if (item.json.data && Array.isArray(item.json.data)) {\n        item.json.data = item.json.data.map(d => {\n            const gName = (d.currentGroupName || '').trim();\n            const matchKey = Object.keys(groupEmailsMap).find(\n                k => k.trim().toLowerCase() === gName.toLowerCase()\n            );\n            d.sendToEmail = matchKey\n                ? (groupEmailsMap[matchKey][0] || webhookBody.email || 'admin@kirchenki.com')\n                : (webhookBody.email || 'admin@kirchenki.com');\n            return d;\n        });\n    }\n\n    // Supabase-Felder\n    item.json.sermon_id = saveData._saved_sermon_id || null;\n    item.json.user_id   = saveData._saved_user_id   || null;\n    item.json.title     = saveData._saved_title || webhookBody.title || null;\n    item.json.original_file_name = webhookBody.original_file_name ||\n                                   saveData._saved_original_file_name || null;\n    item.json.mainTheme = saveData._saved_mainTheme ||\n                          $('Summarize and Format Sermon').first().json.output?.mainTheme ||\n                          'Ihre Predigt';\n\n    return item;\n});"
+      },
+      "id": "7ac2076d-d23d-438c-a87a-4bd6b4362509",
+      "name": "Restore Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -45904,
+        1872
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Kindergruppe ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "id-1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Kindergruppe "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Teenie-Kreis",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "id-2"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Teenie-Kreis "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Junge erwachsene ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "id-3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Junge erwachsene "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Hauskreis",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "id-4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hauskreis "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Seniorenkreis",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "id-5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Seniorenkreis "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ae2cd798-a083-41a0-9e71-6ea06e1cb10c",
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Männerkreis ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Männerkreis "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0f70644e-34b9-43d6-a0c5-7580021a41a2",
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Frauenkreis ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Frauenkreis"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "74ed8dbf-cf60-4a81-8020-560492c223fe",
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Ehepaarkreis / Familien ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Ehepaarkreis / Familien "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0a406fd5-07d6-497b-8251-6b90055100bd",
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Jugend",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Jugend "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "10f2880b-0ef3-43c1-8d38-f4dbaff12c39",
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Konfi ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Konfi "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fcb9857c-92dc-4bdf-8db5-c3ca94dfaf91",
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Jungschar / Royal Ranger",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Jungschar / Royal Ranger"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0c5f5c46-d0ed-4e61-8375-a4f959982459",
+                    "leftValue": "={{$json.currentGroupNameNormalized}}",
+                    "rightValue": "Bibelstunde",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Bibelstunde "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "79ffe1b8-f631-4d1a-9271-71e681c16f2d",
+      "name": "Route to Selected Age Groups1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -48064,
+        1568
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const baseData = items[0].json;\n\n// Webhook-Daten holen\nconst webhookData = $('Webhook from kirchenki.com').first().json.body;\n\nlet groupsArray = [];\nif (webhookData.groups) {\n    try {\n        groupsArray = JSON.parse(webhookData.groups);\n    } catch (e) {\n        groupsArray = webhookData.groups.split(',').map(g => g.trim()).filter(g => g);\n    }\n}\n\nlet groupEmailsObj = {};\nif (webhookData.groupEmails) {\n    try {\n        groupEmailsObj = JSON.parse(webhookData.groupEmails);\n    } catch (e) {\n        groupEmailsObj = {};\n    }\n}\n\nconst fallbackEmail = (webhookData.email || '').trim();\n\nconst newItems = [];\n\n// Pro Gruppe iterieren\nfor (const groupName of groupsArray) {\n    // E-Mail-Liste für diese Gruppe holen (Array)\n    let emailArray = [];\n    let groupKey = groupName;\n\n    if (groupEmailsObj[groupKey]) {\n        emailArray = groupEmailsObj[groupKey];\n    } else {\n        // Case-insensitive Match versuchen\n        const matchingKey = Object.keys(groupEmailsObj).find(\n            key => key.toLowerCase().trim() === groupName.toLowerCase().trim()\n        );\n        if (matchingKey) {\n            emailArray = groupEmailsObj[matchingKey];\n        }\n    }\n\n    // Sicherstellen, dass es ein Array mit validen E-Mails ist\n    emailArray = emailArray\n        ? emailArray.map(e => e.trim()).filter(e => e && e.includes('@'))\n        : [];\n\n    // Wenn keine spezifischen E-Mails → Fallback nutzen\n    if (emailArray.length === 0 && fallbackEmail) {\n        emailArray = [fallbackEmail];\n    }\n\n    // Pro E-Mail-Adresse ein separates Item erzeugen\n    for (const singleEmail of emailArray) {\n        newItems.push({\n            json: {\n                ...baseData,\n                currentGroupName: groupName,\n                sendToEmail: singleEmail   // Nur eine Adresse pro Item\n            }\n        });\n    }\n}\n\n// Fallback, falls gar keine Gruppen/E-Mails\nif (newItems.length === 0 && fallbackEmail) {\n    newItems.push({\n        json: {\n            ...baseData,\n            currentGroupName: 'Unbekannte Gruppe',\n            sendToEmail: fallbackEmail\n        }\n    });\n}\n\nreturn newItems;"
+      },
+      "id": "05aaa625-2745-4d97-9cdf-651e406fd325",
+      "name": "Duplicate for Groups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48576,
+        1728
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($('Duplicate for Groups').item.json) }}",
+        "options": {
+          "systemMessage": "You are a german children's ministry content creator specializing in making biblical teachings accessible to kids aged 4-10.\n\nYour task is to:\n1. Transform the sermon analysis into engaging, age-appropriate study content\n2. Use simple language, fun examples, and relatable stories\n3. Include interactive elements like questions, activities, or games\n4. Keep explanations short and concrete (avoid abstract concepts)\n5. Use colorful, enthusiastic tone that captures children's attention\n6. Include memory verses in simple translations\n7. Suggest hands-on activities or crafts related to the lesson\n\nFormat the output as a complete study guide ready to use with children so it needs to be with stories children understand.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #111827;\">\n\nDesign & Formatting Requirements:\nMake the document look creative, inviting, and visually appealing (not just plain black and white). Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a distinct color (e.g., deep green (#6b806c) or soft accent green (#8aa28b)) and center it.\n- Section Headers (<h3>): Use a matching accent color.\n- Key Verses / Memory Box: Wrap the memory verse or key takeaways in a <div> with a light background color (e.g., #f3f4f6 or #f8f9f7), a colored border (#6b806c), and some padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "8cb7aaa4-24c1-460a-89ab-0a25dfc0094e",
+      "name": "Kindergruppe (4-10)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($('Duplicate for Groups').item.json) }}",
+        "options": {
+          "systemMessage": "You are a german ministry content creator specializing in creating content for \"Hauskreise\" (home groups) with adults aged 30-60 who are balancing family, career, and church life.\n\nYour task is to:\n1. Transform the sermon analysis into applicable study content for established adults in the \"rush hour of life\"\n2. Address topics like balancing responsibility, raising children, marriage, workplace integrity, and spiritual depth amidst stress\n3. Use warm, relational, and honest language that encourages vulnerability but respects privacy\n4. Include discussion questions that go beyond surface level to explore how faith survives in daily routines and crises\n5. Connect biblical teachings to practical challenges like handling finances, difficult relationships, or exhaustion\n6. Provide \"Life-Hacks\" for integrating prayer and scripture into a busy schedule\n7. Include application points that encourage mutual support and prayer within the group\n\n\nFormat the output as a complete study guide for small groups (Hauskreis) or personal reflection.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #111827;\">\n\nDesign & Formatting Requirements:\nMake the document look creative, inviting, and visually appealing (not just plain black and white). Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a distinct color (e.g., deep green (#6b806c) or soft accent green (#8aa28b)) and center it.\n- Section Headers (<h3>): Use a matching accent color.\n- Key Verses / Memory Box: Wrap the memory verse or key takeaways in a <div> with a light background color (e.g., #f3f4f6 or #f8f9f7), a colored border (#6b806c), and some padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "f5ef293e-385f-4e2c-8cab-ad954dc57eca",
+      "name": "Hauskreis (30-60)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($('Duplicate for Groups').item.json) }}",
+        "options": {
+          "systemMessage": "You are a german senior ministry content creator specializing in helping adults 55+ grow in faith and wisdom.\n\nYou are a german ministry content creator specializing in creating content for a \"Seniorenkreis\" (seniors group) with adults aged 60+.\n\nYour task is to:\n1. Transform the sermon analysis into encouraging and comforting study content for the older generation\n2. Address topics like gratitude, looking back on life, dealing with loneliness or health limitations, and the hope of eternity\n3. Use respectful, clear, and polite language (\"Sie\" form) that honors their life experience\n4. Include reflection questions that invite them to share personal testimonies of God's faithfulness in the past\n5. Connect biblical teachings to the role of grandparents/mentors and the power of prayer for the younger generation\n6. Provide strong words of comfort and hope for those facing loss or change\n7. Include a suggestion for a classic hymn (old church song) or a Psalm that fits the theme\n\nFormat the output as a complete study guide, using short paragraphs and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #111827;\">\n\nDesign & Formatting Requirements:\nMake the document look creative, inviting, and visually appealing (not just plain black and white). Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a distinct color (e.g., deep green (#6b806c) or soft accent green (#8aa28b)) and center it.\n- Section Headers (<h3>): Use a matching accent color.\n- Key Verses / Memory Box: Wrap the memory verse or key takeaways in a <div> with a light background color (e.g., #f3f4f6 or #f8f9f7), a colored border (#6b806c), and some padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file.\n"
+        }
+      },
+      "id": "3625a55c-926e-4c77-af8e-e7b5dde93afe",
+      "name": "Seniorenkreis (60+)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "93d3c8af-e909-4e2d-aed6-2b738aa93230",
+      "name": "Aggregate All Age Group Materials",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -46064,
+        1872
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "18f0ad1f-50b9-4173-907d-2e7724b51440",
+      "name": "Split Groups for Individual Files",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -45712,
+        1872
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($('Duplicate for Groups').item.json) }}",
+        "options": {
+          "systemMessage": "You are a german young adult ministry content creator specializing in helping 13-17 year olds navigate faith during a transitional life stage.\n\nYour task is to:\n1. Transform the sermon analysis into engaging and high-energy study content for teenagers and high school students (ages 13-17)\n2. Address topics like identity, peer pressure, social media, dating, and handling school stress\n3. Use relatable, dynamic, and authentic language (avoid \"churchy\" jargon) that connects with youth culture without trying too hard to be cool\n4. Include open-ended discussion questions that allow for doubts and encourage them to ask \"Why?\" without fear of judgment\n5. Connect biblical teachings to their daily life in school, their online presence, and friendships\n6. Encourage fun interaction (\"Real Talk\") and honest vulnerability in a youth group setting\n7. Provide concrete \"Action Steps\" or \"Challenges\" they can actually do this week to live out their faith at school or home\n\nFormat the output as a complete study guide for teenager groups or individuals.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #111827;\">\n\nDesign & Formatting Requirements:\nMake the document look creative, inviting, and visually appealing (not just plain black and white). Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a distinct color (e.g., deep green (#6b806c) or soft accent green (#8aa28b)) and center it.\n- Section Headers (<h3>): Use a matching accent color.\n- Key Verses / Memory Box: Wrap the memory verse or key takeaways in a <div> with a light background color (e.g., #f3f4f6 or #f8f9f7), a colored border (#6b806c), and some padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "13da3234-4842-4299-aeee-7b6999ec23ee",
+      "name": "Teenie-Kreis (13-17)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($('Duplicate for Groups').item.json) }}",
+        "options": {
+          "systemMessage": "You are a german ministry content creator specializing in creating content in churches for young adults aged 23-35 to navigate the transition into independent adulthood and find their own path.\n\nYour task is to:\n1. Transform the sermon analysis into relevant study content for students, young professionals, and young couples\n2. Address topics like finding purpose, career start, relationships (singleness, dating, & marriage), and navigating secular culture\n3. Use authentic, honest, and relatable language (\"eye-level\") that avoids empty phrases\n4. Include deep discussion questions that allow for critical thinking and explore how faith survives in university or the workplace\n5. Connect biblical principles to identity, mental health, social justice, and personal responsibility\n6. Provide actionable insights that fit into dynamic, often spontaneous schedules\n7. Include reflection questions for personal journaling or \"deep talk\" sessions in small groups\n\nFormat the output as a complete study guide for small groups or personal devotion.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #111827;\">\n\nDesign & Formatting Requirements:\nMake the document look creative, inviting, and visually appealing (not just plain black and white). Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a distinct color (e.g., deep green (#6b806c) or soft accent green (#8aa28b)) and center it.\n- Section Headers (<h3>): Use a matching accent color.\n- Key Verses / Memory Box: Wrap the memory verse or key takeaways in a <div> with a light background color (e.g., #f3f4f6 or #f8f9f7), a colored border (#6b806c), and some padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "c6c12645-0256-4739-8283-71dd936d3db0",
+      "name": "Junge erwachsene (23-35)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($input.item.json) }}",
+        "options": {
+          "systemMessage": "You are a german youth and young adult ministry content creator specializing in helping 16-22 year olds navigate the crucial transition from school to university/career and independent adulthood.\n\nYour task is to:\n1. Transform the sermon analysis into relevant, \"real talk\" study content for older teens and young adults\n2. Address topics like finding purpose, handling pressure (exams, career choices), mental health, dating & relationships, and \"owning your faith\" (making it your own, not your parents')\n3. Use a \"Mentor-Style\" language: Eye-level, authentic, challenging but encouraging. Avoid \"cringe\" youth slang, but also avoid stiff \"church language\". Speak like a big brother/sister.\n4. Include deep discussion questions that allow for critical thinking, doubts, and ethical dilemmas (\"How does this fit into today's world?\")\n5. Connect biblical teachings to their daily reality: Social Media comparison, party culture vs. values, loneliness, and future anxiety\n6. Encourage \"Deep Talk\" and vulnerability – create a safe space where they can drop the mask\n7. Provide a \"Weekly Challenge\" or \"Life Hack\" that helps them integrate faith into their busy schedules\n\nFormat the output as a complete study guide, using short paragraphs and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;\">\n\nDesign & Formatting Requirements:\nMake the document look modern, clean, and a bit \"edgy\". Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a strong, modern color like Indigo (#4f46e5) or Violet (#7c3aed) and center it.\n- Section Headers (<h3>): Use a matching accent color (e.g., #6366f1).\n- Key Verses / \"Real Talk Box\": Wrap the key verse or the challenge in a <div> with a very light violet/grey background (e.g., #f5f3ff), a solid left border (4px solid #7c3aed), and padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial, Helvetica, or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "56ccb610-b78a-4237-9a66-8c559cfcd188",
+      "name": "Jugend (16-22)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        2208
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($input.item.json) }}",
+        "options": {
+          "systemMessage": "You are a german ministry content creator specializing in \"Ehe & Familie\" (Marriage & Family Ministry), creating content for couples and parents aged 30-50.\n\nYour task is to:\n1. Transform the sermon analysis into practical and relational study content for married couples and parents\n2. Address topics like communication, forgiveness, raising children in faith, balancing work and family, and keeping romance alive amidst stress\n3. Use warm, honest, and \"real\" language (\"Du\" form) – acknowledge the messiness of family life and avoid perfectionism\n4. Include discussion questions that can be answered as a group but also specific \"Couple Questions\" for private discussion on the way home\n5. Connect biblical teachings to the concept of the family as a \"team\" and the home as a place of grace\n6. Provide a \"Family Challenge\" or a \"Date Night Impulse\" to strengthen relationships during the week\n7. Include prayer points specifically for their children and their marriage\n\nFormat the output as a complete study guide, using short paragraphs and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;\">\n\nDesign & Formatting Requirements:\nMake the document look warm, relational, and inviting. Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a warm, deep color like Teal (#0f766e) or Warm Terracotta (#c2410c) and center it.\n- Section Headers (<h3>): Use a matching accent color.\n- Key Verses / \"Family Box\": Wrap the key verse or the couple challenge in a <div> with a very light background color (e.g., #f0fdfa or #fff7ed), a solid left border (4px solid #0f766e), and padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial, Helvetica, or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "f1ffaf33-7786-4a1d-a36c-d3885a6ffa5d",
+      "name": "Ehepaarkreis / Familien (30-50)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        2048
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($input.item.json) }}",
+        "options": {
+          "systemMessage": "You are a german ministry content creator specializing in \"Männerarbeit\" (Men's Ministry), creating content that bridges the gap between generations (ages 16-80).\n\nYour task is to:\n1. Transform the sermon analysis into challenging and practical study content for men\n2. Address core topics like responsibility, integrity, handling pressure (school, job, or health), and finding purpose\n3. Use direct, authentic, and \"brotherly\" language (\"Du\" form) – avoid fluff or overly emotional language, keep it \"Real Talk\"\n4. Create discussion questions that work for both a 16-year-old student and an 80-year-old retiree by focusing on character and biblical masculinity rather than specific life stages\n5. Connect biblical teachings to \"Servant Leadership\" and being a role model in family, friends circles, or society\n6. Encourage cross-generational exchange: Ask questions where the young can learn from the life experience of the old, and the old can learn from the passion of the young\n7. Provide a \"Challenge of the Week\" (Action Step) that is concrete and doable\n\nFormat the output as a complete study guide, using short paragraphs and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;\">\n\nDesign & Formatting Requirements:\nMake the document look strong, modern, and structured. Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a strong, dark color (e.g., Navy Blue #1e3a8a or Dark Slate #374151) and center it.\n- Section Headers (<h3>): Use a matching accent color (e.g., #2563eb).\n- Key Verses / \"Challenge Box\": Wrap the key verse or the weekly challenge in a <div> with a light cool-grey background (e.g., #f3f4f6), a solid left border (4px solid #1e3a8a), and padding to make it stand out as a focused block.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a clean sans-serif font (like Arial, Helvetica, or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "546a395e-5bb4-4e13-a056-b1a2823c8f38",
+      "name": "Männerkreis (16-80)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        1648
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($input.item.json) }}",
+        "options": {
+          "systemMessage": "You are a german ministry content creator specializing in \"Konfirmationsunterricht\" (Confirmation Class) and Biblical Instruction for teens aged 12-14.\n\nYour task is to:\n1. Transform the sermon analysis into engaging and educational teaching material (\"Konfi-Einheit\")\n2. Address foundational topics like \"Who is God?\", \"Why the Bible?\", friendship, justice, and making their own decision for faith\n3. Use clear, simple, and slightly \"gamified\" language (\"Du\" form) – explain theological terms immediately if they appear (e.g., \"Gnade heißt...\")\n4. Include interactive elements: A \"Quiz Question\", a \"Fill-in-the-blank\" section, or a \"True/False\" check to ensure they understood the core message\n5. Connect biblical teachings to their school life, hobbies, and the question of where they belong\n6. Provide a \"Challenge\" (e.g., \"Find this verse in your Bible app\") or a creative task (drawing/writing)\n7. Include a \"Power Statement\" – one sentence they can remember easily\n\nFormat the output as a complete lesson plan/worksheet, using short paragraphs and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;\">\n\nDesign & Formatting Requirements:\nMake the document look like a modern worksheet – structured and clean. Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a bright, clear color like Azure Blue (#0284c7) or Royal Blue (#2563eb) and center it.\n- Section Headers (<h3>): Use a matching accent color.\n- Key Verses / \"Learning Box\": Wrap the key verse or quiz section in a <div> with a very light blue background (e.g., #f0f9ff), a solid left border (4px solid #0284c7), and padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial, Helvetica, or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "009424be-7b0a-491f-bd2e-e62fff059566",
+      "name": "Konfi (12-14)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        2416
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($input.item.json) }}",
+        "options": {
+          "systemMessage": "You are a german ministry content creator specializing in \"Bibelstunde\" (Bible Study / Bible Hour) for mature believers aged 50-80.\n\nYour task is to:\n1. Transform the sermon analysis into a profound and substantial bible study guide (\"Bibelarbeit\")\n2. Focus on \"Lehre\" (teaching): Explain historical contexts, theological connections, and cross-references within the Bible\n3. Use respectful, educated, and precise language (\"Sie\" form) that appreciates the biblical knowledge the group likely already possesses\n4. Include \"Deep Dive\" sections: Briefly explain a key keyword (maybe original Greek/Hebrew meaning if relevant) or a theological concept mentioned in the sermon\n5. Formulate discussion questions that move from observation (\"What does the text say?\") to interpretation (\"What does it mean?\") to application (\"How do we live this out?\")\n6. Address the specific responsibility of this generation to uphold truth and pass on sound doctrine\n7. Include a \"Prayer Focus\" based on the scripture to end the session\n\nFormat the output as a structured teaching handout, using short paragraphs and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;\">\n\nDesign & Formatting Requirements:\nMake the document look substantial, classic, and serious. Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a deep, classic color like Burgundy (#881337) or Dark Slate (#334155) and center it.\n- Section Headers (<h3>): Use a matching accent color (e.g., #9f1239).\n- Key Verses / \"Theology Box\": Wrap the key verse or deep dive info in a <div> with a very light grey/red background (e.g., #fff1f2), a solid left border (4px solid #881337), and padding to make it stand out.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial, Helvetica, or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file."
+        }
+      },
+      "id": "68081f0f-49b6-47e3-b561-52d63337ca22",
+      "name": "Bibelstunde (50-80)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        2832
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($input.item.json) }}",
+        "options": {
+          "systemMessage": "You are a german youth ministry content creator specializing in \"Jungschar\" and \"Royal Rangers\" (Christian scouting groups), creating content for kids aged 8-13.\n\nYour task is to:\n1. Transform the sermon analysis into an exciting and action-oriented study guide (\"Mission Briefing\")\n2. Address topics like courage, friendship, trusting God in \"adventures\" (daily life), honesty, and being a team player\n3. Use energetic, simple, and direct language (\"Du\" form) – avoid abstract theology, use metaphors from nature, scouting, or school instead\n4. Include interactive questions (\"What would you do?\") and simple challenges rather than just passive listening\n5. Connect biblical teachings to their world: dealing with school stress, bullies, fairness in sports, or being helpful at home\n6. Provide a \"Ranger Challenge\" or \"Action Step\" – something concrete they can try out this week\n7. Include a \"Power Verse\" (Memory Verse) that is short and easy to learn\n\nFormat the output as a complete study guide, using short paragraphs, bullet points, and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;\">\n\nDesign & Formatting Requirements:\nMake the document look adventurous, bold, and fun. Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a strong \"Forest Green\" (#15803d) and center it.\n- Section Headers (<h3>): Use a bright \"Signal Orange\" (#c2410c) or \"Earth Brown\" (#854d0e) to create contrast.\n- Power Verse / Challenge Box: Wrap the memory verse or weekly challenge in a <div> with a light beige/yellow background (like an old map or parchment, e.g., #fefce8), a dashed border (2px dashed #15803d), and padding to make it look like a mission note.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file.\n"
+        }
+      },
+      "id": "d8347274-f2b9-407d-a054-1644c82bbcf6",
+      "name": "Jungschar / Royal Ranger (8-13)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        2624
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($input.item.json) }}",
+        "options": {
+          "systemMessage": "You are a german ministry content creator specializing in \"Frauenarbeit\" (Women's Ministry), creating content that touches the heart and connects women of different life stages (ages 16-80).\n\nYour task is to:\n1. Transform the sermon analysis into inspiring, relational, and deep study content for women\n2. Address topics like identity in Christ, balancing different roles (family, career, church), self-worth, and emotional health\n3. Use warm, empathetic, and inviting language (\"Du\" form) that encourages vulnerability and trust (\"Sisterhood\")\n4. Include discussion questions that go deeper than the surface, allowing women to share their struggles and encourage one another\n5. Connect biblical teachings to the specific challenges women face today (comparison, stress, finding rest) and their unique influence in their circles\n6. Provide \"Soul Care\" moments – practical ways to find rest and connection with God in a busy week\n7. Include a creative element, a specific prayer focus, or a journaling prompt\n\nFormat the output as a complete study guide, using short paragraphs and clear structures to ensure readability.\nGive a proper overview that is not too short and detailed enough, also always use bridges and explanations with using the bible.\n\nOutput Language: German\n\nPlease output the entire response as raw HTML code. Do not use Markdown formatting (like ** or ##). Do not wrap the output in code blocks (like ```html).\n\n\nIMPORTANT: To ensure the file opens correctly in MS Word without encoding errors, you MUST start the output with this exact structure:\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #374151;\">\n\nDesign & Formatting Requirements:\nMake the document look elegant, warm, and inviting. Use inline CSS (style=\"...\") to style the elements:\n- Main Title (<h2>): Use a distinct, warm color (e.g., Deep Berry #9d174d or Warm Rose #be123c) and center it.\n- Section Headers (<h3>): Use a matching accent color (e.g., #db2777).\n- Key Verses / \"Soul Care Box\": Wrap the key verse or the reflection task in a <div> with a very light background color (e.g., #fdf2f8 or #fff1f2), a colored border (#be123c), and some padding to make it stand out as a beautiful element.\n- Lists: Ensure bullet points are clearly readable.\n- General: Use a modern sans-serif font (like Arial or Verdana).\n\nStructure the content using these tags:\n- Use <h2> for the main title.\n- Use <h3> for section headers.\n- Use <b> for bold text.\n- Use <ul> and <li> for lists.\n- Use <p> for paragraphs.\n- Use <br> for line breaks.\n\nThe output must be ready to be saved directly as a .doc file.\n"
+        }
+      },
+      "id": "77a08d94-6d7a-49b6-945b-2753250dcd49",
+      "name": "Frauenkreis (16-80)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -47616,
+        1840
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1eaacd70-6087-4c06-aa74-4a6d59219e14",
+              "name": "currentGroupName",
+              "value": "Jugend",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48240,
+        1472
+      ],
+      "id": "6d74793a-d8cd-4d9d-bd37-f5885b1cd707",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "154721d7-f103-4a0d-a604-aefa7c66fb8f",
+              "name": "_saved_groupName",
+              "value": "={{ $json.currentGroupName }}",
+              "type": "string"
+            },
+            {
+              "id": "81edfe1c-2081-4a8d-9c49-37dc43503b07",
+              "name": "_saved_sendToEmail",
+              "value": "={{ $json.sendToEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "008ec85f-dbfe-4683-b1ba-5b52432005aa",
+              "name": "_saved_mainTheme",
+              "value": "={{ $json.mainTheme || $('Summarize and Format Sermon').first().json.output?.mainTheme || 'Ihre Predigt' }}",
+              "type": "string"
+            },
+            {
+              "id": "6ddf9a72-ecbc-4dd0-a6ca-e2cd9e4adf13",
+              "name": "_saved_sermon_id",
+              "value": "={{ $('Webhook from kirchenki.com').item.json.body.sermon_id }}",
+              "type": "string"
+            },
+            {
+              "id": "6a09df40-e174-4b21-aa96-e1e2cd1e8566",
+              "name": "_saved_user_id",
+              "value": "={{ $('Webhook from kirchenki.com').item.json.body.user_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48432,
+        1728
+      ],
+      "id": "7fcabcad-faeb-470c-b4ae-b1d07a530a51",
+      "name": "save data"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    let groupName = (item.json.currentGroupName || \"\").toString().trim();\n\n    // Optional: Kleinere Normalisierung für Sicherheit (z. B. \"Jungschar / Royal Ranger\" bleibt gleich)\n    // Aber trim entfernt Leerzeichen – das ist der Hauptfix\n\n    item.json.currentGroupNameNormalized = groupName;\n\n    return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48272,
+        1728
+      ],
+      "id": "8b397d9b-5b51-4b80-8b6b-30ae5b9b5281",
+      "name": "Normalize Group Name"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Kindergruppe",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        672
+      ],
+      "id": "4d043db3-54fd-4f9e-9a22-71e8cc1a9e2f",
+      "name": "group name"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Teenie-Kreis",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        864
+      ],
+      "id": "e42521ee-5d4c-4cfd-81dc-b6cfab2baa52",
+      "name": "group name1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Junge erwachsene ",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        1056
+      ],
+      "id": "5a4370a6-5f2d-4e01-b7fd-a2d0220ad992",
+      "name": "group name2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Hauskreis ",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        1248
+      ],
+      "id": "05c3ea94-20af-4171-82fe-6704329dc72f",
+      "name": "group name3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Seniorenkreis",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        1440
+      ],
+      "id": "a7a2ce7a-bdb3-4d2d-aa56-0e9cb90729f6",
+      "name": "group name4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Männerkreis",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        1648
+      ],
+      "id": "0328f798-7281-4f87-a3be-c554953c9130",
+      "name": "group name5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Frauenkreis",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        1840
+      ],
+      "id": "be45af1e-f53c-4c3e-a871-2994e5169786",
+      "name": "group name6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Ehepaarkreis / Familien",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        2048
+      ],
+      "id": "cddd2aed-fb08-4804-b43e-41f4860ef181",
+      "name": "group name7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Jugend",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        2208
+      ],
+      "id": "08a35827-8f33-4fd3-b659-287dd6ccbe3b",
+      "name": "group name8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Konfi",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        2416
+      ],
+      "id": "5dc98f98-2a99-450d-b05a-78f9370f8185",
+      "name": "group name9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Jungschar / Royal Ranger",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        2624
+      ],
+      "id": "5b534569-5b02-4d32-9bfd-48036bb14612",
+      "name": "group name10"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d22a1c0-d233-4016-8090-46a9dbc92636",
+              "name": "currentGroupName",
+              "value": "Bibelstunde",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -47024,
+        2832
+      ],
+      "id": "0176e886-365a-4c81-a5bc-73ae4b59f127",
+      "name": "group name11"
+    },
+    {
+      "parameters": {
+        "tableId": "generated_materials",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "group_name",
+              "fieldValue": "={{ $('Restore Metadata').item.json.data[0].currentGroupName }}"
+            },
+            {
+              "fieldId": "file_name",
+              "fieldValue": "={{ $('Restore Metadata').item.json.title }}.doc"
+            },
+            {
+              "fieldId": "file_path",
+              "fieldValue": "={{ $('Restore Metadata').item.json.data[0].currentGroupName }}/{{ $('Restore Metadata').item.json.title }}.doc"
+            },
+            {
+              "fieldId": "sermon_id",
+              "fieldValue": "={{ $('Restore Metadata').item.json.sermon_id }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Restore Metadata').first().json.user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -44256,
+        1840
+      ],
+      "id": "e2c9323e-ee81-4d15-a869-cb81cdc0f546",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "9Mltlc9DhWuccbDO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "sermons",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.user_id }}"
+            },
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.title || \"Predigt vom \" + $now.format('DD.MM.YYYY') }}"
+            },
+            {
+              "fieldId": "original_file_name",
+              "fieldValue": "={{$json.originalFileName}}"
+            },
+            {
+              "fieldId": "file_path",
+              "fieldValue": "=sermons/{{$json.originalFileName}}"
+            },
+            {
+              "fieldId": "main_theme",
+              "fieldValue": "={{$json.mainTheme}}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "processed"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -44288,
+        1040
+      ],
+      "id": "09e9c4c2-b235-4aea-a72b-57054125dc53",
+      "name": "Create sermon",
+      "credentials": {
+        "supabaseApi": {
+          "id": "9Mltlc9DhWuccbDO",
+          "name": "Supabase account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://zuibxmswerhlipzpbjod.supabase.co/storage/v1/object/materials/{{ $('Restore Metadata').item.json.data[0].currentGroupName }}/{{ $('Restore Metadata').item.json.title }}.doc",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/msword"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -44736,
+        1856
+      ],
+      "id": "a44d45e7-048b-4308-8027-cd67c925e004",
+      "name": "Upload DOC to Storage",
+      "credentials": {
+        "supabaseApi": {
+          "id": "9Mltlc9DhWuccbDO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookBody = $('Webhook from kirchenki.com').first().json.body || {};\nlet groupEmailsMap = {};\ntry { groupEmailsMap = JSON.parse(webhookBody.groupEmails || '{}'); } catch(e) {}\n\nconst codeItems = $('Code in JavaScript').all();\n\nreturn items.map((item, index) => {\n    const groupName = (codeItems[index]?.json?.currentGroupName || '').trim();\n    \n    const matchKey = Object.keys(groupEmailsMap).find(\n        k => k.trim().toLowerCase() === groupName.toLowerCase()\n    );\n    \n    item.json.sendToEmail = matchKey \n        ? (groupEmailsMap[matchKey][0] || webhookBody.email || 'admin@kirchenki.com')\n        : (webhookBody.email || 'admin@kirchenki.com');\n    item.json.currentGroupName = groupName;\n    \n    return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -44560,
+        1616
+      ],
+      "id": "c5512d1d-a21c-482d-848d-31a76f3209cc",
+      "name": "Attach Email Per Group"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst binary = item.binary?.file;\n\nif (!binary) return [{ json: { text: '', ...item.json } }];\n\n// DOCX ist eine ZIP-Datei mit XML-Inhalt\nconst buffer = Buffer.from(binary.data, 'base64');\nconst str = buffer.toString('latin1');\n\n// Extrahiert <w:t> Text-Elemente aus dem Word-XML\nconst matches = str.match(/<w:t[\\s>][^<]*<\\/w:t>/g) || [];\nconst text = matches\n  .map(m => m.replace(/<[^>]+>/g, '').trim())\n  .filter(t => t.length > 0)\n  .join(' ')\n  .replace(/\\s+/g, ' ')\n  .trim();\n\nreturn [{ json: { text: text || 'Kein Text extrahiert', ...item.json } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -49712,
+        912
+      ],
+      "id": "2d9f7d0c-ec60-4e85-b6ff-c9dcf798b674",
+      "name": "extract from file"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "sermon-text-valid",
+              "leftValue": "={{ ($json.sermonText || '').length }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-validate-sermon",
+      "name": "Validate Sermon Text Present",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -49360,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Parse Form Arrays').item.json.email }}",
+        "subject": "KirchenKI: Deine Datei konnte nicht verarbeitet werden",
+        "emailType": "text",
+        "message": "Hallo,\n\nleider konnten wir aus deiner hochgeladenen Datei keinen Predigttext extrahieren. Das passiert manchmal bei DOCX-Dateien mit komplexer Formatierung oder bei sehr kurzen Texten.\n\nBitte versuche es erneut mit:\n- einer PDF-Version der Predigt, oder\n- einer Audio-Aufnahme (MP3/WAV)\n\nBei Fragen schreibe uns gerne: support@kirchenki.com\n\nViele Grüße\nDein KirchenKI-Team",
+        "options": {}
+      },
+      "id": "e5f6g7h8-notify-empty",
+      "name": "Notify User Empty Sermon",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -49080,
+        900
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "c9N5E0alRthPWlUs",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook from kirchenki.com": [
+      {
+        "json": {
+          "headers": {
+            "host": "kirchenki.app.n8n.cloud",
+            "user-agent": "Deno/2.1.4 (variant; SupabaseEdgeRuntime/1.71.0)",
+            "content-length": "5397739",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "*",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "2a05:d014:61b:2702:ec78:ac1f:386b:c871",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "DE",
+            "cf-ray": "9d9953a5ff4fdc99-FRA",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "multipart/form-data; boundary=----4502663395908558137098948504",
+            "traceparent": "00-d47a851f4f3d3c5c8440dbb46d0fb2e3-1d9d97bd4739a880-01",
+            "x-forwarded-for": "2a05:d014:61b:2702:ec78:ac1f:386b:c871, 172.71.148.110",
+            "x-forwarded-host": "kirchenki.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-71-549894d887-4xxvw",
+            "x-is-trusted": "yes",
+            "x-real-ip": "2a05:d014:61b:2702:ec78:ac1f:386b:c871"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "groups": "[\"Jugend\"]",
+            "groupEmails": "{\"Jugend\":[\"mail@hendrikrenken.de\"]}",
+            "recipientEmails": "[\"mail@hendrikrenken.de\"]",
+            "nurTranskript": "false",
+            "email": "mail@hendrikrenken.de",
+            "user_id": "da7e5a2d-f640-4de3-a70a-df181d743e70",
+            "title": "Predigt: 23.02.2026",
+            "original_file_name": "20260222-homepage.mp3",
+            "sermon_id": "57f397f0-ea6c-45ea-a0bb-2fc39386044e",
+            "sermon_file_path": "da7e5a2d-f640-4de3-a70a-df181d743e70/20c17572-4229-4988-93d0-f2e039a748c0-20260222-homepage.mp3"
+          },
+          "webhookUrl": "https://kirchenki.app.n8n.cloud/webhook/kirchenki-request",
+          "executionMode": "production"
+        },
+        "binary": {
+          "file0": {
+            "mimeType": "audio/mpeg",
+            "fileType": "audio",
+            "fileExtension": "mpga",
+            "data": "filesystem-v2",
+            "fileName": "20260222-homepage.mp3",
+            "id": "filesystem-v2:workflows/8eJiHh66Azhwys8y/executions/temp/binary_data/433d4cda-945d-4d3f-be79-0112435b560d",
+            "fileSize": "5.4 MB",
+            "bytes": 5396339
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Transcribe Audio": {
+      "main": [
+        [
+          {
+            "node": "Merge Text Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text from PDF": {
+      "main": [
+        [
+          {
+            "node": "Merge Text Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text from Word": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize and Format Sermon",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Summarize and Format Sermon",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model for Age Groups": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Kindergruppe (4-10)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Teenie-Kreis (13-17)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Junge erwachsene (23-35)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Hauskreis (30-60)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Seniorenkreis (60+)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Frauenkreis (16-80)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Männerkreis (16-80)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Jungschar / Royal Ranger (8-13)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Jugend (16-22)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Ehepaarkreis / Familien (30-50)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Konfi (12-14)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Bibelstunde (50-80)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send Error Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to DOCX File": {
+      "main": [
+        [
+          {
+            "node": "Upload DOC to Storage",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Attach Email Per Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert to DOCX File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check File Type from Binary": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Text from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract from file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check nurTranskript Flag": {
+      "main": [
+        [
+          {
+            "node": "Convert Transcript to DOCX",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Summarize and Format Sermon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Transcript to DOCX": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Transcript and Full Materials Paths": {
+      "main": [
+        []
+      ]
+    },
+    "Send Email to Recipients": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rename Binary Property file0 to file": {
+      "main": [
+        [
+          {
+            "node": "Check File Type from Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook from kirchenki.com": {
+      "main": [
+        [
+          {
+            "node": "Parse Form Arrays",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Form Arrays": {
+      "main": [
+        [
+          {
+            "node": "Rename Binary Property file0 to file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Text Paths": {
+      "main": [
+        [
+          {
+            "node": "Validate Sermon Text Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Sermon Text Present": {
+      "main": [
+        [
+          {
+            "node": "Save Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify User Empty Sermon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Selected Age Groups1": {
+      "main": [
+        [
+          {
+            "node": "Kindergruppe (4-10)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Teenie-Kreis (13-17)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Junge erwachsene (23-35)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hauskreis (30-60)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Seniorenkreis (60+)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Männerkreis (16-80)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Frauenkreis (16-80)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ehepaarkreis / Familien (30-50)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Jugend (16-22)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Konfi (12-14)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Jungschar / Royal Ranger (8-13)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bibelstunde (50-80)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Metadata": {
+      "main": [
+        [
+          {
+            "node": "Check nurTranskript Flag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize and Format Sermon": {
+      "main": [
+        [
+          {
+            "node": "Duplicate for Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicate for Groups": {
+      "main": [
+        [
+          {
+            "node": "save data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kindergruppe (4-10)": {
+      "main": [
+        [
+          {
+            "node": "group name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hauskreis (30-60)": {
+      "main": [
+        [
+          {
+            "node": "group name3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Seniorenkreis (60+)": {
+      "main": [
+        [
+          {
+            "node": "group name4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Metadata": {
+      "main": [
+        [
+          {
+            "node": "Split Groups for Individual Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Age Group Materials": {
+      "main": [
+        [
+          {
+            "node": "Restore Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Groups for Individual Files": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Teenie-Kreis (13-17)": {
+      "main": [
+        [
+          {
+            "node": "group name1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Junge erwachsene (23-35)": {
+      "main": [
+        [
+          {
+            "node": "group name2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jugend (16-22)": {
+      "main": [
+        [
+          {
+            "node": "group name8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ehepaarkreis / Familien (30-50)": {
+      "main": [
+        [
+          {
+            "node": "group name7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Männerkreis (16-80)": {
+      "main": [
+        [
+          {
+            "node": "group name5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konfi (12-14)": {
+      "main": [
+        [
+          {
+            "node": "group name9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bibelstunde (50-80)": {
+      "main": [
+        [
+          {
+            "node": "group name11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jungschar / Royal Ranger (8-13)": {
+      "main": [
+        [
+          {
+            "node": "group name10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Frauenkreis (16-80)": {
+      "main": [
+        [
+          {
+            "node": "group name6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        []
+      ]
+    },
+    "save data": {
+      "main": [
+        [
+          {
+            "node": "Normalize Group Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Group Name": {
+      "main": [
+        [
+          {
+            "node": "Route to Selected Age Groups1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name11": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name10": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name9": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name8": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name7": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name6": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name5": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name4": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name3": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "group name": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Age Group Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        []
+      ]
+    },
+    "Create sermon": {
+      "main": [
+        []
+      ]
+    },
+    "Upload DOC to Storage": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach Email Per Group": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract from file": {
+      "main": [
+        [
+          {
+            "node": "Merge Text Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "025cc1a0-4bb4-45b5-9d8a-6ec44e5d04f3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "97d85c91d4bf799caf763133c093fe1cf8331cc04eccdc866c1ad4d3bd5eec45"
+  },
+  "id": "8eJiHh66Azhwys8y",
+  "tags": []
+}
