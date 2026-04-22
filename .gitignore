@@ -51,6 +51,7 @@ services/social-media/*.wav
 # Claude Code lokale Daten
 .claude/cache/
 .claude/logs/
+.claude/settings.local.json
 
 # n8n Workflow-Backups
 n8n/*.backup.json
