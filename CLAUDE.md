@@ -102,13 +102,23 @@ Diese Datei wird von Claude Code automatisch gelesen. Sie gibt Claude den Kontex
 
 ---
 
-## Branch-Konvention
+## Branch-Strategie & Environments
 
-- `main` – produktiv, Netlify Auto-Deploy
-- `develop` – Integration
-- `feature/website-relaunch` – Track A
-- `feature/social-media-module` – Track B
-- Conventional Commits: feat:, fix:, refactor:, docs:, chore:
+| Branch      | Environment | Auto-Deploy zu              |
+|-------------|-------------|-----------------------------|
+| `main`      | Production  | kirchenki.com               |
+| `develop`   | Development | dev.kirchenki.com           |
+| `feature/*` | Preview     | Netlify Deploy Preview URL  |
+
+**Flow:** `feature/xyz` → PR → `develop` (CI muss gruen sein) → PR → `main` (CI muss gruen sein).
+
+**Branch-Protection:**
+- `main`: PR erforderlich, keine Force-Pushes
+- `develop`: Direkte Pushes erlaubt, keine Force-Pushes
+- Approvals sind NICHT erforderlich (Shared-GitHub-Account)
+- CI-Enforcement wird aktiviert sobald der erste CI-Run durch ist
+
+**Commits:** Conventional Commits — `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `ci:`
 
 ---
 
